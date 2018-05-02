@@ -1,0 +1,7 @@
+.DS_Store
+.idea
+behat.yml
+composer.lock
+grumphp.yml
+vendor
+phpunit.xml

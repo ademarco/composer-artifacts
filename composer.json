@@ -1,0 +1,24 @@
+{
+    "name": "openeuropa/composer-artifacts",
+    "type": "composer-plugin",
+    "require": {
+        "composer-plugin-api": "^1.1"
+    },
+    "require-dev": {
+        "composer/composer": "^1"
+    },
+    "authors": [
+        {
+            "name": "Antonio De Marco",
+            "email": "antonio@nuvole.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "OpenEuropa\\ComposerArtifacts\\": "./src/"
+        }
+    },
+    "extra": {
+        "class": "OpenEuropa\\ComposerArtifacts\\Plugin"
+    }
+}
