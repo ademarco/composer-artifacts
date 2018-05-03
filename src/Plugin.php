@@ -13,24 +13,30 @@ use Composer\Plugin\PluginInterface;
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
     /**
+     * Holds the artifacts configuration.
+     *
      * @var mixed[]
      */
-    static $config = [];
+    private $config;
 
-    /** @var IOInterface */
-    static $io;
+    /**
+     * The composer input/output.
+     *
+     * @var IOInterface
+     */
+    private $io;
 
     /**
      * {@inheritdoc}
      */
     public function activate(Composer $composer, IOInterface $io)
     {
-        self::$io = $io;
+        $this->io = $io;
 
         $extra = $composer->getPackage()->getExtra() + ['artifacts' => []];
 
         // Make sure that package name are in lowercase.
-        $extra['artifacts'] = array_combine(
+        $this->config = array_combine(
           array_map(
             function($name) {
                 return strtolower($name);
@@ -38,8 +44,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             array_keys($extra['artifacts'])
           ),
           $extra['artifacts']);
-
-        self::$config = $extra['artifacts'];
     }
 
     /**
@@ -59,12 +63,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param \Composer\Installer\PackageEvent $event
      *   The event.
      */
-    public static function prePackageInstall(PackageEvent $event)
+    public function prePackageInstall(PackageEvent $event)
     {
         /** @var Package $package */
         $package = $event->getOperation()->getPackage();
 
-        if (in_array($package->getName(), array_keys(self::$config))) {
+        if (array_key_exists($package->getName(), $this->config)) {
             self::setArtifactDist($package);
         }
     }
@@ -75,12 +79,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param \Composer\Installer\PackageEvent $event
      *   The event.
      */
-    public static function prePackageUpdate(PackageEvent $event)
+    public function prePackageUpdate(PackageEvent $event)
     {
         /** @var Package $package */
         $package = $event->getOperation()->getInitialPackage();
-        if (in_array($package->getName(), array_keys(self::$config))) {
-            self::setArtifactDist($package);
+        if (array_key_exists($package->getName(), $this->config)) {
+            $this->setArtifactDist($package);
         }
     }
 
@@ -90,11 +94,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @param \Composer\Package\Package $package
      *   The package.
      */
-    private static function setArtifactDist(Package $package)
+    private function setArtifactDist(Package $package)
     {
-        self::$io->writeError(
+        $this->io->writeError(
           "  - Installing artifact of <info>" . $package->getName() . "</info> instead of regular package.");
-        $package->setDistUrl(self::$config[$package->getName()]['dist']['url']);
-        $package->setDistType(self::$config[$package->getName()]['dist']['type']);
+        $package->setDistUrl($this->config[$package->getName()]['dist']['url']);
+        $package->setDistType($this->config[$package->getName()]['dist']['type']);
     }
 }
