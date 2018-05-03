@@ -12,11 +12,26 @@ use Composer\Plugin\PluginInterface;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
+
+    /**
+     * @var mixed[]
+     */
     static $config = [];
 
     public function activate(Composer $composer, IOInterface $io)
     {
         $extra = $composer->getPackage()->getExtra() + ['artifacts' => []];
+
+        // Make sure that package name are in lowercase.
+        $extra['artifacts'] = array_combine(
+          array_map(
+            function($name) {
+                return strtolower($name);
+            },
+            array_keys($extra['artifacts'])
+          ),
+          $extra['artifacts']);
+
         self::$config = $extra['artifacts'];
     }
 
@@ -31,7 +46,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function prePackageInstall(PackageEvent $event)
     {
         $package = $event->getOperation()->getPackage();
-        if (in_array($package->getName(), self::$config)) {
+
+        if (in_array($package->getName(), array_keys(self::$config))) {
             self::setArtifactDist($package);
         }
     }
@@ -39,7 +55,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function prePackageUpdate(PackageEvent $event)
     {
         $package = $event->getOperation()->getInitialPackage();
-        if (in_array($package->getName(), self::$config)) {
+        if (in_array($package->getName(), array_keys(self::$config))) {
             self::setArtifactDist($package);
         }
     }
