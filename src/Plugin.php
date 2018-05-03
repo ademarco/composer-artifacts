@@ -12,7 +12,7 @@ use Composer\Plugin\PluginInterface;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
-    static $config = [];
+    public static $config = [];
 
     public function activate(Composer $composer, IOInterface $io)
     {
@@ -22,10 +22,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     public static function getSubscribedEvents()
     {
-        return array(
+        return [
           PackageEvents::PRE_PACKAGE_INSTALL => 'prePackageInstall',
           PackageEvents::PRE_PACKAGE_UPDATE => 'prePackageUpdate',
-        );
+        ];
     }
 
     public static function prePackageInstall(PackageEvent $event)
