@@ -17,11 +17,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     static $config = [];
 
+    /** @var IOInterface */
+    static $io;
+
     /**
      * {@inheritdoc}
      */
     public function activate(Composer $composer, IOInterface $io)
     {
+        self::$io = $io;
+
         $extra = $composer->getPackage()->getExtra() + ['artifacts' => []];
 
         // Make sure that package name are in lowercase.
@@ -87,6 +92,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     private static function setArtifactDist(Package $package)
     {
+        self::$io->writeError(
+          "  - Installing artifact of <info>" . $package->getName() . "</info> instead of regular package.");
         $package->setDistUrl(self::$config[$package->getName()]['dist']['url']);
         $package->setDistType(self::$config[$package->getName()]['dist']['type']);
     }
