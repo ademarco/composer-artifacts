@@ -12,12 +12,14 @@ use Composer\Plugin\PluginInterface;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
-
     /**
      * @var mixed[]
      */
     static $config = [];
 
+    /**
+     * {@inheritdoc}
+     */
     public function activate(Composer $composer, IOInterface $io)
     {
         $extra = $composer->getPackage()->getExtra() + ['artifacts' => []];
@@ -35,16 +37,26 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         self::$config = $extra['artifacts'];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public static function getSubscribedEvents()
     {
-        return array(
+        return [
           PackageEvents::PRE_PACKAGE_INSTALL => 'prePackageInstall',
           PackageEvents::PRE_PACKAGE_UPDATE => 'prePackageUpdate',
-        );
+        ];
     }
 
+    /**
+     * Pre package install callback.
+     *
+     * @param \Composer\Installer\PackageEvent $event
+     *   The event.
+     */
     public static function prePackageInstall(PackageEvent $event)
     {
+        /** @var Package $package */
         $package = $event->getOperation()->getPackage();
 
         if (in_array($package->getName(), array_keys(self::$config))) {
@@ -52,14 +64,27 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
+    /**
+     * Pre package update callback.
+     *
+     * @param \Composer\Installer\PackageEvent $event
+     *   The event.
+     */
     public static function prePackageUpdate(PackageEvent $event)
     {
+        /** @var Package $package */
         $package = $event->getOperation()->getInitialPackage();
         if (in_array($package->getName(), array_keys(self::$config))) {
             self::setArtifactDist($package);
         }
     }
 
+    /**
+     * Custom callback that update a package properties.
+     *
+     * @param \Composer\Package\Package $package
+     *   The package.
+     */
     private static function setArtifactDist(Package $package)
     {
         $package->setDistUrl(self::$config[$package->getName()]['dist']['url']);
