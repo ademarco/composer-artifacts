@@ -44,9 +44,49 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    private static function setArtifactDist(Package $package)
+    /**
+     * Custom callback that update a package properties.
+     *
+     * @param \Composer\Package\Package $package
+     *   The package.
+     */
+    private function setArtifactDist(Package $package)
     {
-        $package->setDistUrl(self::$config[$package->getName()]['dist']['url']);
-        $package->setDistType(self::$config[$package->getName()]['dist']['type']);
+        $this->io->writeError(
+          "  - Installing artifact of <info>" . $package->getName() . "</info> instead of regular package.");
+
+        $tokens = $this->getPackageTokens($package);
+
+        $distUrl = strtr($this->config[$package->getName()]['dist']['url'], $tokens);
+        $distType = strtr($this->config[$package->getName()]['dist']['type'], $tokens);
+
+        $package->setDistUrl($distUrl);
+        $package->setDistType($distType);
+    }
+
+    /**
+     * Get tokens from a package.
+     *
+     * @param \Composer\Package\Package $package
+     *
+     * @return string[]
+     *   The list of tokens and their associated values.
+     */
+    private function getPackageTokens(Package $package)
+    {
+        $tokens = [
+          'version' => $package->getVersion(),
+          'name' => $package->getName(),
+          'stability' => $package->getStability(),
+          'type' => $package->getType(),
+          'checksum' => $package->getDistSha1Checksum(),
+        ];
+
+        foreach ($tokens as $name => $value) {
+            unset($tokens[$name]);
+            $mappings['{' . $name . '}'] = $value;
+        }
+
+        return $tokens;
     }
 }
