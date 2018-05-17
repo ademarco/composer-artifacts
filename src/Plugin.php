@@ -98,11 +98,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         $this->io->writeError(
           "  - Installing artifact of <info>" . $package->getName() . "</info> instead of regular package.");
-<<<<<<< HEAD
-        $package->setDistUrl($this->config[$package->getName()]['dist']['url']);
-        $package->setDistType($this->config[$package->getName()]['dist']['type']);
-=======
-
         $tokens = $this->getPackageTokens($package);
 
         $distUrl = strtr($this->config[$package->getName()]['dist']['url'], $tokens);
@@ -136,6 +131,5 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         return $tokens;
->>>>>>> origin/11-provides-tokens
     }
 }
